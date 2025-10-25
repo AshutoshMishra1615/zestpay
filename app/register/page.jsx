@@ -12,6 +12,7 @@
  * Note: Only employees from registered company domains can register
  */
 import { useState } from "react";
+import Link from "next/link";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -236,14 +237,14 @@ const RegisterPage = () => {
 
       <div className="relative mb-2 bg-white/5 backdrop-blur-xl border text-2xl border-yellow-400/20 rounded-2xl shadow-2xl p-8 sm:p-10 md:p-12 w-full max-w-md text-center">
         <div className="shrink-0 flex justify-center mb-2">
-          <a
+          <Link
             href="/"
             className="flex items-center justify-center bg-black text-white w-28 py-3 rounded-full font-bold text-2xl"
           >
             <span>
               zest<span className="text-yellow-300">pay</span>
             </span>
-          </a>
+          </Link>
         </div>
 
         <h1 className="text-4xl font-bold text-white mb-2">

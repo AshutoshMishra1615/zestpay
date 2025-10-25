@@ -35,8 +35,9 @@ const LoginPage = () => {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      // Check if email is verified
-      if (!user.emailVerified) {
+      // Check if email is verified (skip for test accounts)
+      const isTestAccount = email.endsWith("@testcompany.com");
+      if (!user.emailVerified && !isTestAccount) {
         await auth.signOut();
         throw new Error(
           "Please verify your email before logging in. Check your inbox for the verification link."
