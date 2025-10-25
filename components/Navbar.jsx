@@ -26,7 +26,7 @@ const Navbar = () => {
           <div className="shrink-0">
             <a href="#" className="flex items-center justify-center bg-black text-white w-28 py-3 rounded-full font-bold text-lg">
               {/* The text is reversed in the image, you can use CSS 'transform: scaleX(-1)' or an SVG */}
-              <span style={{ transform: '' }}>zest pay</span>
+              <span>zest<span className='text-yellow-300'>pay</span></span>
             </a>
           </div>
 

@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Navbar from "../components/Navbar";
+import ImageCarousel from "../components/ImageCarousel";
+import FeatureGrid from "../components/FeatureGrid";
 
 
 const stepsData = [
@@ -36,6 +38,7 @@ export default function Home() {
   return (
     <div className="">
        <Navbar />
+       <ImageCarousel />
        <div className="bg-yellow-300 text-black py-20 px-5 flex flex-col items-center font-sans">
       
       {/* Main Title */}
@@ -62,10 +65,12 @@ export default function Home() {
       </div>
 
       {/* "Get started" Button */}
-      <button className="bg-black text-white py-4 px-8 rounded-full text-base font-semibold cursor-pointer hover:bg-gray-800 transition-colors duration-300">
+      <button className="bg-black text-white py-4 px-40 rounded-full text-base font-semibold cursor-pointer hover:bg-gray-800 transition-colors duration-300">
         Get started &rarr;
       </button>
+      
     </div>
+    <FeatureGrid />
     </div>
   );
 }
