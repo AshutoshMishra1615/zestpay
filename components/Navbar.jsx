@@ -7,10 +7,10 @@ import Link from 'next/link';
 
 // Data for navigation links
 const navLinks = [
-  { name: 'For Individuals', href: '' },
-  { name: 'For Businesses', href: '' },
-  { name: 'Who We Are', href: '' },
-  { name: 'Impact', href: '' },
+  { name: 'For Individuals', href: '/' },
+  { name: 'For Businesses', href: '/businessOnboard' },
+  { name: 'Who We Are', href: '/' },
+  { name: 'Impact', href: '/' },
 ];
 
 const Navbar = () => {
@@ -33,13 +33,13 @@ const Navbar = () => {
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex md:items-center md:space-x-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className="text-black hover:text-gray-700 text-base font-semibold"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </div>
 
