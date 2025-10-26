@@ -181,7 +181,16 @@ const LoginPage = () => {
             Register Now
           </a>
         </p>
+         <div className="text-white/50 text-[1.5vw] mt-12">
+        <h2>Dummy Id and Password</h2>
+        <p>Company Admin : admin@testcompany.com</p>
+        <p>Company Admin password : Test@123</p>
+        <h2>Employee Dummy Id and Pssword </h2>
+        <p>Employee user id  : jane.smith@testcompany.com</p>
+        <p>Employee password : Test@123</p>
       </div>
+      </div>
+     
     </div>
   );
 };
