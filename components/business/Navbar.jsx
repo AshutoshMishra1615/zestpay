@@ -1,9 +1,6 @@
-'use client'
-import React, { useState } from 'react';
-import  useBusinessStore  from '@/stores/useBusiness';
-
-
-
+"use client";
+import React, { useState } from "react";
+import useBusinessStore from "@/stores/useBusiness";
 
 const MenuIcon = ({ className = "w-6 h-6" }) => (
   <svg
@@ -45,17 +42,16 @@ const CloseIcon = ({ className = "w-6 h-6" }) => (
 // --- Navigation Links ---
 // Defined as an array for easy mapping in both desktop and mobile menus.
 const navLinks = [
-  { href: "#", text: "For Individuals" },
-  { href: "#", text: "For Businesses" },
-  { href: "#", text: "Who We Are" },
-  { href: "#", text: "Impact" },
-];
+  { href: "/#indivduals", text: "For Individuals" },
+  { href: "/#buisness", text: "For Businesses" },
 
+  { href: "/#impact", text: "Impact" },
+];
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-   const { form , setForm  } = useBusinessStore();
+  const { form, setForm } = useBusinessStore();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -68,7 +64,6 @@ export default function Navbar() {
       <nav className="relative bg-black text-white">
         {/* Container to center and pad the content */}
         <div className="container mx-auto flex items-center justify-between px-6 py-3">
-          
           {/* Left Side: Logo and Desktop Nav Links */}
           <div className="flex items-center gap-x-10">
             {/* Logo */}
@@ -76,9 +71,11 @@ export default function Navbar() {
               href="#"
               className="inline-block rounded-full bg-white px-5 py-2  font-bold text-black"
             >
-              <span>zest<span className='text-yellow-500'>pay</span> </span>
+              <span>
+                zest<span className="text-yellow-500">pay</span>{" "}
+              </span>
             </a>
-            
+
             {/* Desktop Nav Links */}
             <div className="hidden items-center gap-x-8 md:flex">
               {navLinks.map((link) => (
@@ -102,7 +99,7 @@ export default function Navbar() {
             >
               Book a demo
             </a>
-            
+
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={toggleMobileMenu}
@@ -138,9 +135,6 @@ export default function Navbar() {
           </div>
         )}
       </nav>
-
-    
-     
     </div>
   );
 }

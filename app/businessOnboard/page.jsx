@@ -1,9 +1,9 @@
-"use client"
-import React from "react"
-import Navbar from "@/components/business/Navbar"
-import Form from "@/components/business/Form"
-import Image from "next/image"
-import Features from "@/components/business/Features"
+"use client";
+import React from "react";
+import Navbar from "@/components/business/Navbar";
+import Form from "@/components/business/Form";
+import Image from "next/image";
+import Features from "@/components/business/Features";
 
 export default function BusinessOnboard() {
   return (
@@ -35,7 +35,9 @@ export default function BusinessOnboard() {
           </h1>
 
           <p className="mb-10 max-w-2xl text-lg md:text-xl mx-auto">
-           Go beyond PF and Gratuity. Offer Instant Salary Advance and simple financial wellness solutions that help employees reduce financial stress and build security—starting today.
+            Go beyond PF and Gratuity. Offer Instant Salary Advance and simple
+            financial wellness solutions that help employees reduce financial
+            stress and build security—starting today.
           </p>
 
           <a
@@ -46,9 +48,10 @@ export default function BusinessOnboard() {
           </a>
         </div>
       </section>
-      <Features />
+      <div id="buisness">
+        <Features />
+      </div>
       {/* Additional Content Section */}
-    
     </div>
-  )
+  );
 }

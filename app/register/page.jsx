@@ -23,6 +23,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -169,8 +170,11 @@ const RegisterPage = () => {
       const companyData = querySnapshot.docs[0].data();
       const companyId = querySnapshot.docs[0].id;
 
-      // Create employee profile in Firestore
-      await setDoc(doc(db, "employees", result.user.uid), {
+      // Check if company admin pre-created an employee record for this email
+      const emailId = email.replace(/[@.]/g, "_");
+      const preCreatedEmployeeDoc = await getDoc(doc(db, "employees", emailId));
+
+      let employeeData = {
         email: email,
         name: email.split("@")[0],
         companyId: companyId,
@@ -178,6 +182,7 @@ const RegisterPage = () => {
         domain: domain,
         trustScore: 50,
         monthlySalary: 0, // To be set by company admin
+        department: "Not Set",
         totalWithdrawn: 0,
         totalRepaid: 0,
         onTimeRepayments: 0,
@@ -185,7 +190,26 @@ const RegisterPage = () => {
         hasSubscription: false,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
+
+      // If pre-created employee record exists, merge the data
+      if (preCreatedEmployeeDoc.exists()) {
+        const preCreatedData = preCreatedEmployeeDoc.data();
+        employeeData = {
+          ...employeeData,
+          name: preCreatedData.name || employeeData.name,
+          monthlySalary: preCreatedData.monthlySalary || 0,
+          department: preCreatedData.department || "Not Set",
+          trustScore: preCreatedData.trustScore || 50,
+          status: "active", // Change from 'invited' to 'active'
+        };
+
+        // Delete the temporary pre-created record
+        await deleteDoc(doc(db, "employees", emailId));
+      }
+
+      // Create employee profile with Firebase auth UID
+      await setDoc(doc(db, "employees", result.user.uid), employeeData);
 
       setSuccess("Registration successful! Redirecting to login...");
 

@@ -17,44 +17,27 @@ import { FaCheckCircle } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from "@/lib/authContext";
 import { useRouter } from "next/navigation";
+import { db } from "@/firebase";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  increment,
+  deleteDoc,
+} from "firebase/firestore";
+import { getCompanyEmployees } from "@/lib/firebaseService";
 
 const CompanyDashboard = () => {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout, role } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Placeholder state - will be replaced with actual Firebase integration
-  const [company, setCompany] = useState({
-    name: "Acme Corporation",
-    id: "acme-001",
-    employees: 0,
-    totalPayroll: 0,
-  });
+  // Company and employee state
+  const [company, setCompany] = useState(null);
+  const [employees, setEmployees] = useState([]);
 
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@acme.com",
-      employeeId: "EMP001",
-      salary: 50000,
-      department: "Engineering",
-      trustScore: 75,
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@acme.com",
-      employeeId: "EMP002",
-      salary: 45000,
-      department: "Marketing",
-      trustScore: 65,
-      status: "active",
-    },
-  ]);
-
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -69,14 +52,87 @@ const CompanyDashboard = () => {
     joiningDate: "",
   });
 
+  // Fetch company and employee data from Firebase
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchCompanyData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch company data - check if user is actually a company admin
+        const companyDoc = await getDoc(doc(db, "companies", user.uid));
+        if (companyDoc.exists()) {
+          const companyData = companyDoc.data();
+          setCompany({
+            name: companyData.name || "Company",
+            id: user.uid,
+            domain: companyData.domain,
+            employees: companyData.totalEmployees || 0,
+            totalPayroll: companyData.totalDisbursed || 0,
+          });
+
+          // Fetch employees for this company
+          const employeesList = await getCompanyEmployees(user.uid);
+          setEmployees(
+            employeesList.map((emp) => ({
+              id: emp.id,
+              name: emp.name || emp.email.split("@")[0],
+              email: emp.email,
+              employeeId: emp.id.substring(0, 8).toUpperCase(),
+              salary: emp.monthlySalary || 0,
+              department: emp.department || "Not Set",
+              trustScore: emp.trustScore || 50,
+              status: "active",
+            }))
+          );
+        } else {
+          // Company document doesn't exist - user is not a company admin
+          // Check if they're an employee instead
+          console.error("Company document not found for user:", user.uid);
+          
+          const employeeDoc = await getDoc(doc(db, "employees", user.uid));
+          if (employeeDoc.exists()) {
+            // This is an employee, redirect to employee dashboard
+            console.log("User is an employee, redirecting to employee dashboard");
+            router.push("/employee/dashboard");
+            return;
+          }
+          
+          // Not a company admin or employee - redirect to login
+          console.log("User is neither company admin nor employee, redirecting to login");
+          setMessage({
+            type: "error",
+            text: "Access denied. Only company admins can access this page.",
+          });
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching company data:", error);
+        setMessage({
+          type: "error",
+          text: "Failed to load company data. Redirecting...",
+        });
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanyData();
+  }, [user, router]);
+
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-300 border-t-black mx-auto mb-4"></div>
-          <p className="text-gray-700 text-lg font-medium">
-            Loading dashboard...
-          </p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-400 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg font-medium">Authenticating...</p>
         </div>
       </div>
     );
@@ -87,18 +143,100 @@ const CompanyDashboard = () => {
     return null;
   }
 
+  // Check if user has the correct role (company admin)
+  if (role && role !== "company") {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30">
+            <FiX className="w-10 h-10 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+          <p className="text-gray-400 mb-6">
+            Only company administrators can access this dashboard.
+          </p>
+          <button
+            onClick={() => router.push(role === "employee" ? "/employee/dashboard" : "/login")}
+            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg transition-all transform hover:scale-105"
+          >
+            {role === "employee" ? "Go to Employee Dashboard" : "Go to Login"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const handleAddEmployee = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const newEmployee = {
-        id: employees.length + 1,
-        ...formData,
-        salary: parseFloat(formData.salary),
-        trustScore: 50,
-        status: "active",
+      if (!company || !user) {
+        throw new Error("Company information not available");
+      }
+      // Check if email domain matches company domain
+      const emailDomain = formData.email.split("@")[1];
+      if (emailDomain !== company.domain) {
+        throw new Error(
+          `Employee email must use company domain: @${company.domain}`
+        );
+      }
+
+      // Note: We're not creating Firebase auth accounts here
+      // Employees will register themselves using the /register page
+      // This just creates a placeholder/pre-approved employee record
+
+      const employeeData = {
+        email: formData.email,
+        name: formData.name,
+        companyId: user.uid,
+        companyName: company.name,
+        domain: company.domain,
+        monthlySalary: parseFloat(formData.salary),
+        department: formData.department,
+        trustScore: 50, // Default trust score
+        totalWithdrawn: 0,
+        totalRepaid: 0,
+        onTimeRepayments: 0,
+        lateRepayments: 0,
+        hasSubscription: false,
+        subscriptionPaidAt: null,
+        subscriptionExpiresAt: null,
+        status: "invited", // Status will change to 'active' when employee registers
+        invitedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
+
+      // Create employee document with email as the document ID
+      // When the employee registers, their Firebase UID document will reference this
+      const employeeId = formData.email.replace(/[@.]/g, "_");
+      await setDoc(doc(db, "employees", employeeId), employeeData);
+
+      // Update company's total employee count
+      await updateDoc(doc(db, "companies", user.uid), {
+        totalEmployees: increment(1),
+      });
+
+      // Update local state
+      const newEmployee = {
+        id: employeeId,
+        name: formData.name,
+        email: formData.email,
+        employeeId: employeeId.substring(0, 8).toUpperCase(),
+        salary: parseFloat(formData.salary),
+        department: formData.department,
+        trustScore: 50,
+        status: "invited",
+      };
+
       setEmployees([...employees, newEmployee]);
-      setMessage({ type: "success", text: "Employee added successfully!" });
+      setCompany({ ...company, employees: company.employees + 1 });
+
+      setMessage({
+        type: "success",
+        text: `Employee invited! They can now register using ${formData.email}`,
+      });
+
       setFormData({
         name: "",
         email: "",
@@ -110,21 +248,60 @@ const CompanyDashboard = () => {
       setShowAddModal(false);
     } catch (error) {
       console.error("Error adding employee:", error);
-      setMessage({ type: "error", text: "Failed to add employee" });
+      setMessage({
+        type: "error",
+        text: error.message || "Failed to add employee",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = async (id) => {
     if (confirm("Are you sure you want to remove this employee?")) {
-      setEmployees(employees.filter((emp) => emp.id !== id));
-      setMessage({ type: "success", text: "Employee removed successfully!" });
+      try {
+        // Delete employee from Firebase
+        await deleteDoc(doc(db, "employees", id));
+
+        // Update company's total employee count
+        await updateDoc(doc(db, "companies", user.uid), {
+          totalEmployees: increment(-1),
+        });
+
+        // Update local state
+        setEmployees(employees.filter((emp) => emp.id !== id));
+        setCompany({ ...company, employees: company.employees - 1 });
+
+        setMessage({ type: "success", text: "Employee removed successfully!" });
+      } catch (error) {
+        console.error("Error deleting employee:", error);
+        setMessage({
+          type: "error",
+          text: "Failed to remove employee. Please try again.",
+        });
+      }
     }
   };
 
+  // Calculate total payroll from employees
   const totalPayroll = employees.reduce(
     (sum, emp) => sum + (emp.salary || 0),
     0
   );
+
+  // Show loading state while fetching data
+  if (loading || !company) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-400 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg font-medium">
+            Loading dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
@@ -337,6 +514,9 @@ const CompanyDashboard = () => {
                     Trust Score
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -363,6 +543,17 @@ const CompanyDashboard = () => {
                     <td className="px-6 py-4">
                       <span className="inline-block bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-4 py-1.5 rounded-lg text-sm font-bold">
                         {emp.trustScore}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-block px-4 py-1.5 rounded-lg text-sm font-bold border ${
+                          emp.status === "active"
+                            ? "bg-green-500/10 border-green-500/30 text-green-400"
+                            : "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"
+                        }`}
+                      >
+                        {emp.status === "active" ? "Active" : "Invited"}
                       </span>
                     </td>
                     <td className="px-6 py-4">

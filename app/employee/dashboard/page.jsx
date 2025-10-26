@@ -54,6 +54,8 @@ export default function EmployeeDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeNav, setActiveNav] = useState("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Refs for GSAP animations
   const metricsRef = useRef([]);
@@ -208,7 +210,7 @@ export default function EmployeeDashboard() {
 
   // Modal animations
   useEffect(() => {
-    if (showWithdrawalModal || showPaymentModal) {
+    if (showWithdrawalModal || showPaymentModal || showDetailsModal) {
       gsap.fromTo(
         ".modal-overlay",
         { opacity: 0 },
@@ -220,7 +222,7 @@ export default function EmployeeDashboard() {
         { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.5)" }
       );
     }
-  }, [showWithdrawalModal, showPaymentModal]);
+  }, [showWithdrawalModal, showPaymentModal, showDetailsModal]);
 
   const handleFakePayment = async () => {
     setPaymentProcessing(true);
@@ -318,6 +320,59 @@ export default function EmployeeDashboard() {
     );
   };
 
+  const handleExportTransactions = () => {
+    if (!hasActiveSubscription || withdrawals.length === 0) {
+      showNotificationMessage("error", "No transactions to export");
+      return;
+    }
+
+    // Create CSV content
+    const headers = ["Date", "Time", "Amount", "Reason", "Status"];
+    const csvContent = [
+      headers.join(","),
+      ...withdrawals.map((w) => {
+        const date = new Date(w.requestDate);
+        const dateStr = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        const timeStr = date.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return [
+          dateStr,
+          timeStr,
+          `₹${w.amount}`,
+          `"${w.reason || "No reason provided"}"`,
+          w.status.charAt(0).toUpperCase() + w.status.slice(1),
+        ].join(",");
+      }),
+    ].join("\n");
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `zestpay_transactions_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showNotificationMessage("success", "Transactions exported successfully");
+  };
+
+  const handleViewDetails = (withdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setShowDetailsModal(true);
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -390,8 +445,8 @@ export default function EmployeeDashboard() {
         <div className="h-20 flex items-center justify-between px-5 border-b border-yellow-500/20">
           {!sidebarCollapsed && (
             <Link href="/" className="text-2xl font-space-grotesk font-bold">
-              <span className="text-white">Zest</span>
-              <span className="text-yellow-400">Pay</span>
+              <span className="text-white">zest</span>
+              <span className="text-yellow-400">pay</span>
             </Link>
           )}
           <button
@@ -971,6 +1026,7 @@ export default function EmployeeDashboard() {
                         disabled={
                           !hasActiveSubscription || withdrawals.length === 0
                         }
+                        onClick={handleExportTransactions}
                         className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-400 font-medium rounded-lg hover:bg-yellow-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <FiDownload className="w-4 h-4" />
@@ -1053,21 +1109,38 @@ export default function EmployeeDashboard() {
                                 </div>
                                 <div>
                                   <div className="text-sm font-medium text-white">
-                                    {new Date(
-                                      withdrawal.requestDate
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })}
+                                    {withdrawal.requestDate &&
+                                    !isNaN(
+                                      new Date(withdrawal.requestDate).getTime()
+                                    )
+                                      ? new Date(
+                                          withdrawal.requestDate
+                                        ).toLocaleDateString("en-US", {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                        })
+                                      : new Date().toLocaleDateString("en-US", {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                        })}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    {new Date(
-                                      withdrawal.requestDate
-                                    ).toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
+                                    {withdrawal.requestDate &&
+                                    !isNaN(
+                                      new Date(withdrawal.requestDate).getTime()
+                                    )
+                                      ? new Date(
+                                          withdrawal.requestDate
+                                        ).toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : new Date().toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
                                   </div>
                                 </div>
                               </div>
@@ -1077,9 +1150,10 @@ export default function EmployeeDashboard() {
                                 ₹{withdrawal.amount.toLocaleString()}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {withdrawal.status === "approved"
+                                {withdrawal.status === "approved" ||
+                                withdrawal.status === "success"
                                   ? "Credited"
-                                  : "Pending"}
+                                  : "Processing"}
                               </div>
                             </td>
                             <td className="px-6 py-4 hidden md:table-cell">
@@ -1090,28 +1164,36 @@ export default function EmployeeDashboard() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
                                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                                  withdrawal.status === "approved"
+                                  withdrawal.status === "approved" ||
+                                  withdrawal.status === "success" ||
+                                  !withdrawal.status
                                     ? "bg-green-500/10 text-green-400 border-green-500/30"
-                                    : withdrawal.status === "pending"
-                                    ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                                    : "bg-red-500/10 text-red-400 border-red-500/30"
+                                    : withdrawal.status === "rejected"
+                                    ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                    : "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
                                 }`}
                               >
-                                {withdrawal.status === "approved" && (
+                                {(withdrawal.status === "approved" ||
+                                  withdrawal.status === "success" ||
+                                  !withdrawal.status) && (
                                   <FiCheckCircle className="w-3 h-3" />
-                                )}
-                                {withdrawal.status === "pending" && (
-                                  <FiClock className="w-3 h-3" />
                                 )}
                                 {withdrawal.status === "rejected" && (
                                   <FiAlertCircle className="w-3 h-3" />
                                 )}
-                                {withdrawal.status.charAt(0).toUpperCase() +
-                                  withdrawal.status.slice(1)}
+                                {withdrawal.status === "approved" ||
+                                withdrawal.status === "success" ||
+                                !withdrawal.status
+                                  ? "Success"
+                                  : withdrawal.status.charAt(0).toUpperCase() +
+                                    withdrawal.status.slice(1)}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors">
+                              <button
+                                onClick={() => handleViewDetails(withdrawal)}
+                                className="text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors"
+                              >
                                 Details
                               </button>
                             </td>
@@ -1304,6 +1386,7 @@ export default function EmployeeDashboard() {
                         disabled={
                           !hasActiveSubscription || withdrawals.length === 0
                         }
+                        onClick={handleExportTransactions}
                         className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-400 font-medium rounded-lg hover:bg-yellow-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <FiDownload className="w-4 h-4" />
@@ -1374,82 +1457,107 @@ export default function EmployeeDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-yellow-500/10">
-                        {withdrawals.map((withdrawal, index) => (
-                          <tr
-                            key={withdrawal.id}
-                            className="hover:bg-yellow-500/5 transition-colors group"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
-                                  <FiCalendar className="w-4 h-4 text-yellow-400" />
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium text-white">
-                                    {new Date(
-                                      withdrawal.requestDate
-                                    ).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })}
+                        {withdrawals.map((withdrawal, index) => {
+                          const withdrawalDate =
+                            withdrawal.requestDate &&
+                            !isNaN(new Date(withdrawal.requestDate).getTime())
+                              ? new Date(withdrawal.requestDate)
+                              : new Date();
+
+                          return (
+                            <tr
+                              key={withdrawal.id}
+                              className="hover:bg-yellow-500/5 transition-colors group"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
+                                    <FiCalendar className="w-4 h-4 text-yellow-400" />
                                   </div>
-                                  <div className="text-xs text-gray-500">
-                                    {new Date(
-                                      withdrawal.requestDate
-                                    ).toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
+                                  <div>
+                                    <div className="text-sm font-medium text-white">
+                                      {withdrawalDate.toLocaleDateString(
+                                        "en-US",
+                                        {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                        }
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {withdrawalDate.toLocaleTimeString(
+                                        "en-US",
+                                        {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        }
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-base font-bold text-white">
-                                ₹{withdrawal.amount.toLocaleString()}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {withdrawal.status === "approved"
-                                  ? "Credited"
-                                  : "Pending"}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 hidden md:table-cell">
-                              <div className="text-sm text-gray-300 max-w-xs truncate">
-                                {withdrawal.reason || "No reason provided"}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                                  withdrawal.status === "approved"
-                                    ? "bg-green-500/10 text-green-400 border-green-500/30"
-                                    : withdrawal.status === "pending"
-                                    ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                                    : "bg-red-500/10 text-red-400 border-red-500/30"
-                                }`}
-                              >
-                                {withdrawal.status === "approved" && (
-                                  <FiCheckCircle className="w-3 h-3" />
-                                )}
-                                {withdrawal.status === "pending" && (
-                                  <FiClock className="w-3 h-3" />
-                                )}
-                                {withdrawal.status === "rejected" && (
-                                  <FiAlertCircle className="w-3 h-3" />
-                                )}
-                                {withdrawal.status.charAt(0).toUpperCase() +
-                                  withdrawal.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors">
-                                Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-base font-bold text-white">
+                                  ₹{withdrawal.amount.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {withdrawal.status === "approved" ||
+                                  withdrawal.status === "success" ||
+                                  !withdrawal.status
+                                    ? "Credited"
+                                    : "Pending"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 hidden md:table-cell">
+                                <div className="text-sm text-gray-300 max-w-xs truncate">
+                                  {withdrawal.reason || "No reason provided"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
+                                    withdrawal.status === "approved" ||
+                                    withdrawal.status === "success" ||
+                                    !withdrawal.status
+                                      ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                      : withdrawal.status === "pending"
+                                      ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                                      : "bg-red-500/10 text-red-400 border-red-500/30"
+                                  }`}
+                                >
+                                  {(withdrawal.status === "approved" ||
+                                    withdrawal.status === "success" ||
+                                    !withdrawal.status) && (
+                                    <FiCheckCircle className="w-3 h-3" />
+                                  )}
+                                  {withdrawal.status === "pending" && (
+                                    <FiClock className="w-3 h-3" />
+                                  )}
+                                  {withdrawal.status === "rejected" && (
+                                    <FiAlertCircle className="w-3 h-3" />
+                                  )}
+                                  {withdrawal.status === "approved" ||
+                                  withdrawal.status === "success" ||
+                                  !withdrawal.status
+                                    ? "Success"
+                                    : withdrawal.status
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                      withdrawal.status.slice(1)}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <button
+                                  onClick={() => handleViewDetails(withdrawal)}
+                                  className="text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors"
+                                >
+                                  Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1903,6 +2011,164 @@ export default function EmployeeDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Details Modal */}
+      {showDetailsModal && selectedWithdrawal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 modal-overlay">
+          <div className="bg-zinc-900 border border-yellow-500/20 rounded-2xl max-w-lg w-full shadow-2xl shadow-yellow-500/10 modal-content">
+            <div className="p-6 border-b border-yellow-500/10 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <FiFileText className="w-6 h-6 text-yellow-400" />
+                Transaction Details
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  setSelectedWithdrawal(null);
+                }}
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-black/50 border border-yellow-500/20 text-gray-400 hover:text-white hover:border-yellow-500/40 transition-all"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Status Banner */}
+              <div
+                className={`p-4 rounded-xl border ${
+                  selectedWithdrawal.status === "approved" ||
+                  selectedWithdrawal.status === "success" ||
+                  !selectedWithdrawal.status
+                    ? "bg-green-500/10 border-green-500/30"
+                    : selectedWithdrawal.status === "pending"
+                    ? "bg-yellow-500/10 border-yellow-500/30"
+                    : "bg-red-500/10 border-red-500/30"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`text-sm font-bold ${
+                      selectedWithdrawal.status === "approved" ||
+                      selectedWithdrawal.status === "success" ||
+                      !selectedWithdrawal.status
+                        ? "text-green-400"
+                        : selectedWithdrawal.status === "pending"
+                        ? "text-yellow-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {selectedWithdrawal.status === "approved" ||
+                    selectedWithdrawal.status === "success" ||
+                    !selectedWithdrawal.status
+                      ? "✓ Transaction Success"
+                      : selectedWithdrawal.status === "pending"
+                      ? "⏳ Pending Approval"
+                      : "✕ Transaction Failed"}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
+                      selectedWithdrawal.status === "approved" ||
+                      selectedWithdrawal.status === "success" ||
+                      !selectedWithdrawal.status
+                        ? "bg-green-500/20 text-green-400 border-green-500/40"
+                        : selectedWithdrawal.status === "pending"
+                        ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/40"
+                        : "bg-red-500/20 text-red-400 border-red-500/40"
+                    }`}
+                  >
+                    {selectedWithdrawal.status === "approved" ||
+                    selectedWithdrawal.status === "success" ||
+                    !selectedWithdrawal.status
+                      ? "Success"
+                      : selectedWithdrawal.status.charAt(0).toUpperCase() +
+                        selectedWithdrawal.status.slice(1)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div className="bg-black/40 border border-yellow-500/10 rounded-xl p-6 text-center">
+                <div className="text-sm text-gray-400 mb-2">
+                  Transaction Amount
+                </div>
+                <div className="text-4xl font-bold text-white mb-1">
+                  ₹{selectedWithdrawal.amount.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {selectedWithdrawal.status === "approved" ||
+                  selectedWithdrawal.status === "success" ||
+                  !selectedWithdrawal.status
+                    ? "Successfully credited to your account"
+                    : selectedWithdrawal.status === "pending"
+                    ? "Awaiting approval"
+                    : "Transaction not processed"}
+                </div>
+              </div>
+
+              {/* Transaction Info */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-yellow-500/10">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FiCalendar className="w-4 h-4" />
+                    <span className="text-sm">Request Date</span>
+                  </div>
+                  <div className="text-white font-medium">
+                    {selectedWithdrawal.requestDate &&
+                    !isNaN(new Date(selectedWithdrawal.requestDate).getTime())
+                      ? new Date(
+                          selectedWithdrawal.requestDate
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : new Date().toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-3 border-b border-yellow-500/10">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FiDollarSign className="w-4 h-4" />
+                    <span className="text-sm">Transaction ID</span>
+                  </div>
+                  <div className="text-white font-medium font-mono text-sm">
+                    {selectedWithdrawal.id || "N/A"}
+                  </div>
+                </div>
+
+                <div className="flex items-start justify-between py-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FiFileText className="w-4 h-4" />
+                    <span className="text-sm">Reason</span>
+                  </div>
+                  <div className="text-white font-medium text-right max-w-xs">
+                    {selectedWithdrawal.reason || "No reason provided"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  setSelectedWithdrawal(null);
+                }}
+                className="w-full py-3 bg-yellow-500 text-black font-bold rounded-xl hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-lg shadow-yellow-500/20"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,16 +1,14 @@
-
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 // Import the icons for the hamburger menu
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link';
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 
 // Data for navigation links
 const navLinks = [
-  { name: 'For Individuals', href: '/' },
-  { name: 'For Businesses', href: '/businessOnboard' },
-  { name: 'Who We Are', href: '/' },
-  { name: 'Impact', href: '/' },
+  { name: "For Individuals", href: "/#individuals" },
+  { name: "For Businesses", href: "/businessOnboard" },
+  { name: "Impact", href: "/#impact" },
 ];
 
 const Navbar = () => {
@@ -21,12 +19,16 @@ const Navbar = () => {
     <nav className="bg-white text-black font-sans shadow-sm">
       <div className="mx-auto max-w-7xl px-4  sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
-          
           {/* Logo */}
           <div className="shrink-0">
-            <a href="#" className="flex items-center justify-center bg-black text-white w-28 py-3 rounded-full font-bold text-lg">
+            <a
+              href="#"
+              className="flex items-center justify-center bg-black text-white w-28 py-3 rounded-full font-bold text-lg"
+            >
               {/* The text is reversed in the image, you can use CSS 'transform: scaleX(-1)' or an SVG */}
-              <span>zest<span className='text-yellow-300'>pay</span></span>
+              <span>
+                zest<span className="text-yellow-300">pay</span>
+              </span>
             </a>
           </div>
 
@@ -45,8 +47,10 @@ const Navbar = () => {
 
           {/* Desktop Login/Sign up Button */}
           <div className="hidden md:block">
-            
-             <Link href="/login" className='bg-black text-white py-3 px-6 rounded-full text-base font-semibold hover:bg-gray-800 transition-colors'>
+            <Link
+              href="/login"
+              className="bg-black text-white py-3 px-6 rounded-full text-base font-semibold hover:bg-gray-800 transition-colors"
+            >
               Login / Sign up
             </Link>
           </div>
@@ -70,8 +74,10 @@ const Navbar = () => {
 
       {/* Mobile Menu (Dropdown) */}
       {/* This section is shown/hidden based on the 'isOpen' state */}
-      <div 
-        className={`md:hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}
+      <div
+        className={`md:hidden transition-all duration-300 ease-in-out ${
+          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        } overflow-hidden`}
       >
         <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
           {navLinks.map((link) => (
@@ -84,11 +90,9 @@ const Navbar = () => {
             </a>
           ))}
           {/* Mobile Login Button */}
-         <Link href="/login"> 
-           
-            className="block w-full text-left rounded-md px-3 py-3 text-base font-semibold text-white bg-black hover:bg-gray-800"
-          
-            Login / Sign up
+          <Link href="/login">
+            className="block w-full text-left rounded-md px-3 py-3 text-base
+            font-semibold text-white bg-black hover:bg-gray-800" Login / Sign up
           </Link>
         </div>
       </div>
