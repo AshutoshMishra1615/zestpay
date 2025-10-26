@@ -549,11 +549,11 @@ export default function EmployeeDashboard() {
             <>
               {/* Welcome Section */}
               <div ref={welcomeRef}>
-                <h2 className="text-3xl font-bold text-gray-900">
+                <h2 className="text-3xl font-bold text-white">
                   Welcome back,{" "}
-                  <span className="text-yellow-600">{employee.name}</span>
+                  <span className="text-yellow-500">{employee.name}</span>
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-400 mt-1">
                   Here's your financial overview for today
                 </p>
               </div>
@@ -561,16 +561,16 @@ export default function EmployeeDashboard() {
               {/* Trust Score Card */}
               <div
                 ref={trustScoreRef}
-                className="bg-gradient-to-br from-yellow-50 to-white border border-yellow-200 rounded-2xl p-6 relative overflow-hidden shadow-sm"
+                className="bg-gradient-to-br from-yellow-500/10 via-yellow-500/5 to-transparent border border-yellow-500/20 rounded-2xl p-6 relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-100/50 rounded-full blur-3xl"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl"></div>
                 <div className="relative">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <p className="text-sm text-gray-600 font-medium uppercase tracking-wide mb-2">
+                      <p className="text-sm text-gray-400 font-medium uppercase tracking-wide mb-2">
                         Trust Score
                       </p>
-                      <div className="text-5xl font-bold text-yellow-600">
+                      <div className="text-5xl font-bold text-yellow-500">
                         {employee.trustScore}%
                       </div>
                       <p className="text-sm text-gray-500 mt-2">
@@ -581,11 +581,11 @@ export default function EmployeeDashboard() {
                           : "Needs improvement"}
                       </p>
                     </div>
-                    <div className="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center shadow-sm">
-                      <FiActivity className="w-8 h-8 text-yellow-600" />
+                    <div className="w-16 h-16 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                      <FiActivity className="w-8 h-8 text-yellow-500" />
                     </div>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden">
                     <div
                       className="trust-score-progress h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full"
                       style={{ width: "0%" }}
@@ -598,21 +598,21 @@ export default function EmployeeDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div
                   ref={(el) => (metricsRef.current[0] = el)}
-                  className="relative bg-white border border-gray-200 rounded-2xl p-6 hover:border-yellow-300 hover:shadow-md transition-all group overflow-hidden"
+                  className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-black border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-400/40 transition-all group overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-50 rounded-full blur-3xl group-hover:bg-yellow-100 transition-all" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 rounded-full blur-3xl group-hover:bg-yellow-400/10 transition-all" />
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="text-xs text-gray-500 font-poppins font-medium uppercase tracking-wider mb-2">
+                        <p className="text-xs text-gray-400 font-poppins font-medium uppercase tracking-wider mb-2">
                           Monthly Salary
                         </p>
-                        <h3 className="text-3xl font-space-grotesk font-bold text-gray-900">
+                        <h3 className="text-3xl font-space-grotesk font-bold text-white">
                           ₹{(employee.monthlySalary / 1000).toFixed(0)}k
                         </h3>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                        <FiDollarSign className="w-7 h-7 text-yellow-600" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-yellow-400/10 to-yellow-600/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-yellow-500/10">
+                        <FiDollarSign className="w-7 h-7 text-yellow-400" />
                       </div>
                     </div>
                     <p className="text-sm text-gray-500 font-inter">
@@ -623,23 +623,23 @@ export default function EmployeeDashboard() {
 
                 <div
                   ref={(el) => (metricsRef.current[1] = el)}
-                  className="relative bg-white border border-gray-200 rounded-2xl p-6 hover:border-yellow-300 hover:shadow-md transition-all group overflow-hidden"
+                  className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-black border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-400/40 transition-all group overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full blur-3xl group-hover:bg-green-100 transition-all" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-400/5 rounded-full blur-3xl group-hover:bg-green-400/10 transition-all" />
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="text-xs text-gray-500 font-poppins font-medium uppercase tracking-wider mb-2">
+                        <p className="text-xs text-gray-400 font-poppins font-medium uppercase tracking-wider mb-2">
                           Available
                         </p>
-                        <h3 className="text-3xl font-space-grotesk font-bold text-gray-900">
+                        <h3 className="text-3xl font-space-grotesk font-bold text-white">
                           {hasActiveSubscription
                             ? `₹${(availableAmount / 1000).toFixed(1)}k`
                             : "---"}
                         </h3>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                        <FiTrendingUp className="w-7 h-7 text-green-600" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-green-400/10 to-green-600/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-green-500/10">
+                        <FiTrendingUp className="w-7 h-7 text-green-400" />
                       </div>
                     </div>
                     {hasActiveSubscription ? (
@@ -652,8 +652,8 @@ export default function EmployeeDashboard() {
                       </p>
                     )}
                     {!hasActiveSubscription && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl">
-                        <FiLock className="w-10 h-10 text-gray-300" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-2xl">
+                        <FiLock className="w-10 h-10 text-yellow-400/50" />
                       </div>
                     )}
                   </div>
@@ -661,16 +661,16 @@ export default function EmployeeDashboard() {
 
                 <div
                   ref={(el) => (metricsRef.current[2] = el)}
-                  className="relative bg-white border border-gray-200 rounded-2xl p-6 hover:border-yellow-300 hover:shadow-md transition-all group overflow-hidden"
+                  className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-black border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-400/40 transition-all group overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full blur-3xl group-hover:bg-purple-100 transition-all" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/5 rounded-full blur-3xl group-hover:bg-purple-400/10 transition-all" />
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="text-xs text-gray-500 font-poppins font-medium uppercase tracking-wider mb-2">
+                        <p className="text-xs text-gray-400 font-poppins font-medium uppercase tracking-wider mb-2">
                           Withdrawn
                         </p>
-                        <h3 className="text-3xl font-space-grotesk font-bold text-gray-900">
+                        <h3 className="text-3xl font-space-grotesk font-bold text-white">
                           {hasActiveSubscription
                             ? `₹${(
                                 (employee.totalWithdrawn || 0) / 1000
@@ -678,8 +678,8 @@ export default function EmployeeDashboard() {
                             : "---"}
                         </h3>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                        <FiClock className="w-7 h-7 text-purple-600" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-purple-400/10 to-purple-600/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/10">
+                        <FiClock className="w-7 h-7 text-purple-400" />
                       </div>
                     </div>
                     {hasActiveSubscription ? (
@@ -693,8 +693,8 @@ export default function EmployeeDashboard() {
                       </p>
                     )}
                     {!hasActiveSubscription && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl">
-                        <FiLock className="w-10 h-10 text-gray-300" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-2xl">
+                        <FiLock className="w-10 h-10 text-yellow-400/50" />
                       </div>
                     )}
                   </div>
@@ -704,17 +704,17 @@ export default function EmployeeDashboard() {
               {/* Financial Overview Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Repayment Performance */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-black border border-yellow-500/20 rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-white">
                       Repayment Record
                     </h3>
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <FiCheckCircle className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                      <FiCheckCircle className="w-5 h-5 text-green-400" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-xl p-4 border border-green-200">
+                    <div className="bg-black/50 rounded-xl p-4 border border-green-500/20">
                       <div className="text-2xl font-bold text-green-400">
                         {employee.onTimeRepayments || 0}
                       </div>
